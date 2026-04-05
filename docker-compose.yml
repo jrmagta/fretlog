@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fretlog}
+      POSTGRES_USER: ${POSTGRES_USER:-fretlog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fretlog}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fretlog} -d ${POSTGRES_DB:-fretlog}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db_test:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: fretlog_test
+      POSTGRES_USER: fretlog
+      POSTGRES_PASSWORD: fretlog
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fretlog}:${POSTGRES_PASSWORD:-fretlog}@db:5432/${POSTGRES_DB:-fretlog}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+
+volumes:
+  pgdata:
