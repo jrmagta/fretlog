@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --surface:                #131313;
+  --surface-container-low:  #1c1c1c;
+  --surface-container:      #222222;
+  --surface-container-high: #2a2a2a;
+  --surface-container-highest: #333333;
+  --primary:                #c0622a;
+  --primary-container:      #7a3a18;
+  --tertiary:               #b8942a;
+  --on-surface:             #e8e0d8;
+  --on-surface-variant:     #9a8f84;
+  --outline-variant:        #4a4035;
+
+  --label-sm:  0.6875rem;
+  --body-sm:   0.8125rem;
+  --body-md:   0.9375rem;
+  --title-sm:  0.875rem;
+  --title-lg:  1.125rem;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-md);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grain overlay — 2% opacity analog film texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4) sepia(0.3);
+  cursor: pointer;
+}

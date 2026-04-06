@@ -40,5 +40,15 @@ services:
     volumes:
       - ./backend/src:/app/src
 
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+
 volumes:
   pgdata:

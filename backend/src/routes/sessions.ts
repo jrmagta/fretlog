@@ -3,6 +3,50 @@ import { pool } from '../db';
 
 const router = Router();
 
+// GET /api/sessions/stats
+router.get('/stats', async (_req: Request, res: Response) => {
+  const { rows } = await pool.query(`
+    WITH practice_days AS (
+      SELECT DISTINCT date FROM sessions
+    ),
+    with_gaps AS (
+      SELECT
+        date,
+        date - LAG(date) OVER (ORDER BY date) AS gap
+      FROM practice_days
+    ),
+    streak_groups AS (
+      SELECT
+        date,
+        SUM(CASE WHEN gap > 1 OR gap IS NULL THEN 1 ELSE 0 END)
+          OVER (ORDER BY date) AS grp
+      FROM with_gaps
+    ),
+    current_streak AS (
+      SELECT
+        CASE WHEN CURRENT_DATE - MAX(date) <= 1 THEN COUNT(*) ELSE 0 END AS streak_days
+      FROM streak_groups
+      WHERE grp = (SELECT grp FROM streak_groups ORDER BY date DESC LIMIT 1)
+    )
+    SELECT
+      (SELECT streak_days FROM current_streak)          AS streak_days,
+      COALESCE(SUM(CASE
+        WHEN date >= date_trunc('week', CURRENT_DATE)
+        THEN duration_minutes END), 0)                  AS week_minutes,
+      COALESCE(SUM(CASE
+        WHEN date >= date_trunc('month', CURRENT_DATE)
+        THEN duration_minutes END), 0)                  AS month_minutes
+    FROM sessions
+  `);
+
+  const row = rows[0];
+  res.json({
+    streak_days: parseInt(row.streak_days ?? '0'),
+    week_minutes: parseInt(row.week_minutes),
+    month_minutes: parseInt(row.month_minutes),
+  });
+});
+
 // GET /api/sessions?limit=20&offset=0
 router.get('/', async (req: Request, res: Response) => {
   const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);

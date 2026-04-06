@@ -15,6 +15,68 @@ beforeEach(async () => {
   await clearTables();
 });
 
+describe('GET /api/sessions/stats', () => {
+  it('returns zeros when no sessions', async () => {
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.status).toBe(200);
+    expect(res.body.streak_days).toBe(0);
+    expect(res.body.week_minutes).toBe(0);
+    expect(res.body.month_minutes).toBe(0);
+  });
+
+  it('counts week and month minutes correctly', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await request(app).post('/api/sessions').send({ date: today, duration_minutes: 30 });
+    await request(app).post('/api/sessions').send({ date: today, duration_minutes: 20 });
+
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.body.week_minutes).toBeGreaterThanOrEqual(50);
+    expect(res.body.month_minutes).toBeGreaterThanOrEqual(50);
+  });
+
+  it('returns a streak of 1 for a session today', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await request(app).post('/api/sessions').send({ date: today, duration_minutes: 30 });
+
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.body.streak_days).toBe(1);
+  });
+
+  it('returns a streak of 2 for sessions today and yesterday', async () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    await request(app).post('/api/sessions').send({ date: today.toISOString().split('T')[0], duration_minutes: 30 });
+    await request(app).post('/api/sessions').send({ date: yesterday.toISOString().split('T')[0], duration_minutes: 30 });
+
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.body.streak_days).toBe(2);
+  });
+
+  it('returns 0 streak when last session was 2+ days ago', async () => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    await request(app).post('/api/sessions').send({ date: twoDaysAgo.toISOString().split('T')[0], duration_minutes: 30 });
+
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.body.streak_days).toBe(0);
+  });
+
+  it('does not count a broken streak', async () => {
+    const today = new Date();
+    const twoDaysAgo = new Date(today);
+    twoDaysAgo.setDate(today.getDate() - 2);
+
+    // gap on yesterday breaks the streak
+    await request(app).post('/api/sessions').send({ date: today.toISOString().split('T')[0], duration_minutes: 30 });
+    await request(app).post('/api/sessions').send({ date: twoDaysAgo.toISOString().split('T')[0], duration_minutes: 30 });
+
+    const res = await request(app).get('/api/sessions/stats');
+    expect(res.body.streak_days).toBe(1);
+  });
+});
+
 describe('POST /api/sessions', () => {
   it('creates a session with required fields', async () => {
     const res = await request(app)

@@ -47,28 +47,34 @@
   - Duplicate attaches are idempotent (`ON CONFLICT DO NOTHING`)
   - 49/49 tests passing
 
-- [ ] **Step 7** — Stats endpoint
-  - `GET /api/sessions/stats`
-  - Returns: current streak (consecutive days), weekly total (minutes), monthly total (minutes)
-  - Streak and aggregation logic in SQL/Postgres
+- [x] **Step 7** — Stats endpoint
+  - `GET /api/sessions/stats` registered before `/:id` to avoid route shadowing
+  - Streak uses SQL window functions + CTE grouping; streak resets if last session > 1 day ago
+  - Bug fixed: window functions cannot be used in WHERE — moved to CASE in SELECT
+  - 55/55 tests passing
 
 ### Phase 2 — Frontend
 
-- [ ] **Step 8** — Frontend scaffold
-  - Vite + React + TypeScript
+- [x] **Step 8** — Frontend scaffold
+  - Vite + React + TypeScript, `docker-compose.yml` frontend service on port 5173
   - Vite proxy: `/api` → `http://backend:3000` (no CORS config needed)
-  - Typed fetch wrappers in `src/api/`
+  - Typed fetch wrappers in `src/api/` (sessions, songs, techniques + shared types)
 
-- [ ] **Step 9** — Dashboard page
-  - Live timer quick-start
-  - Recent sessions list
-  - Weekly/monthly practice totals
-  - Streak display
+- [x] **Step 9** — Dashboard page
+  - "Sacred Resonance" design system from DESIGN.md (Space Grotesk + Manrope, void dark, burnt orange/gold)
+  - Live timer with glassmorphism card + pulsing amber glow when active
+  - Stats bar: streak, week total, month total
+  - Recent sessions list with tonal date strip, no borders
+  - Quick-log manual entry form with ghost border inputs
+  - Pure utility functions extracted to `src/utils/dates.ts` with Vitest unit tests
+  - Bug fixed: date parsing now uses `.slice(0, 10)` to handle both `YYYY-MM-DD` and full ISO strings
 
-- [ ] **Step 10** — Session form
-  - Manual entry mode and live timer mode
-  - Fields: date, duration, notes, reference URL
-  - Song + technique picker with inline creation from library
+- [x] **Step 10** — Session form
+  - Full-page form at `/sessions/new` and `/sessions/:id/edit`
+  - Tag-style LibraryPicker component for songs + techniques with inline creation
+  - Syncs attachments on edit (diffs original vs selected, attaches/detaches)
+  - react-router-dom added for navigation
+  - Hostname access via `jr-pc1.jrmagta.home` — `allowedHosts` in vite.config.ts
 
 - [ ] **Step 11** — History page
   - Paginated session list
