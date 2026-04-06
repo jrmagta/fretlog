@@ -106,6 +106,18 @@ describe('PUT /api/techniques/:id', () => {
     const res = await request(app).put('/api/techniques/99999').send({ name: 'X' });
     expect(res.status).toBe(404);
   });
+
+  it('rejects missing name', async () => {
+    const created = await request(app).post('/api/techniques').send({ name: 'Vibrato' });
+    const res = await request(app).put(`/api/techniques/${created.body.id}`).send({ category: 'lead' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects blank name', async () => {
+    const created = await request(app).post('/api/techniques').send({ name: 'Vibrato' });
+    const res = await request(app).put(`/api/techniques/${created.body.id}`).send({ name: '   ' });
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('DELETE /api/techniques/:id', () => {

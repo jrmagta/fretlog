@@ -168,6 +168,32 @@ describe('GET /api/sessions/:id', () => {
   });
 });
 
+describe('GET /api/sessions/:id — soft-deleted library items', () => {
+  it('still shows a soft-deleted song in session detail (preserves history)', async () => {
+    const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+    const song = await request(app).post('/api/songs').send({ title: 'Yesterday' });
+
+    await request(app).post(`/api/sessions/${session.body.id}/songs/${song.body.id}`);
+    await request(app).delete(`/api/songs/${song.body.id}`);
+
+    const detail = await request(app).get(`/api/sessions/${session.body.id}`);
+    expect(detail.body.songs).toHaveLength(1);
+    expect(detail.body.songs[0].title).toBe('Yesterday');
+  });
+
+  it('still shows a soft-deleted technique in session detail (preserves history)', async () => {
+    const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+    const tech = await request(app).post('/api/techniques').send({ name: 'Hammer-on' });
+
+    await request(app).post(`/api/sessions/${session.body.id}/techniques/${tech.body.id}`);
+    await request(app).delete(`/api/techniques/${tech.body.id}`);
+
+    const detail = await request(app).get(`/api/sessions/${session.body.id}`);
+    expect(detail.body.techniques).toHaveLength(1);
+    expect(detail.body.techniques[0].name).toBe('Hammer-on');
+  });
+});
+
 describe('Session song links', () => {
   it('attaches and detaches a song', async () => {
     const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
@@ -202,6 +228,15 @@ describe('Session song links', () => {
   it('returns 404 when attaching a non-existent song', async () => {
     const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
     const res = await request(app).post(`/api/sessions/${session.body.id}/songs/99999`);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when attaching a soft-deleted song', async () => {
+    const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+    const song = await request(app).post('/api/songs').send({ title: 'Blackbird' });
+    await request(app).delete(`/api/songs/${song.body.id}`);
+
+    const res = await request(app).post(`/api/sessions/${session.body.id}/songs/${song.body.id}`);
     expect(res.status).toBe(404);
   });
 
@@ -250,6 +285,15 @@ describe('Session technique links', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 404 when attaching a soft-deleted technique', async () => {
+    const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+    const tech = await request(app).post('/api/techniques').send({ name: 'Fingerpicking' });
+    await request(app).delete(`/api/techniques/${tech.body.id}`);
+
+    const res = await request(app).post(`/api/sessions/${session.body.id}/techniques/${tech.body.id}`);
+    expect(res.status).toBe(404);
+  });
+
   it('returns 404 when detaching a link that does not exist', async () => {
     const session = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
     const tech = await request(app).post('/api/techniques').send({ name: 'Fingerpicking' });
@@ -277,6 +321,26 @@ describe('PUT /api/sessions/:id', () => {
       .send({ date: '2026-01-01', duration_minutes: 30 });
 
     expect(res.status).toBe(404);
+  });
+
+  it('rejects missing duration_minutes', async () => {
+    const created = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+
+    const res = await request(app)
+      .put(`/api/sessions/${created.body.id}`)
+      .send({ date: created.body.date });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects duration_minutes < 1', async () => {
+    const created = await request(app).post('/api/sessions').send({ duration_minutes: 30 });
+
+    const res = await request(app)
+      .put(`/api/sessions/${created.body.id}`)
+      .send({ date: created.body.date, duration_minutes: 0 });
+
+    expect(res.status).toBe(400);
   });
 });
 

@@ -106,6 +106,18 @@ describe('PUT /api/songs/:id', () => {
     const res = await request(app).put('/api/songs/99999').send({ title: 'X' });
     expect(res.status).toBe(404);
   });
+
+  it('rejects missing title', async () => {
+    const created = await request(app).post('/api/songs').send({ title: 'Blackbird' });
+    const res = await request(app).put(`/api/songs/${created.body.id}`).send({ artist: 'The Beatles' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects blank title', async () => {
+    const created = await request(app).post('/api/songs').send({ title: 'Blackbird' });
+    const res = await request(app).put(`/api/songs/${created.body.id}`).send({ title: '   ' });
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('DELETE /api/songs/:id', () => {
