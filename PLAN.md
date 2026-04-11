@@ -76,6 +76,15 @@
   - react-router-dom added for navigation
   - Hostname access via `jr-pc1.jrmagta.home` — `allowedHosts` in vite.config.ts
 
+- [x] **Step 10.5** — Frontend component tests
+  - Vitest jsdom environment + React Testing Library + jest-dom
+  - `LibraryPicker`: 13 tests (rendering, chip interaction, inline creation)
+  - `Dashboard`: 21 tests (data loading, session cards, quick log form, flash timing, timer with fake timers)
+  - `SessionForm` create mode: 10 tests (rendering, submission, song attachment, inline creation)
+  - `SessionForm` edit mode: 13 tests (loading, pre-population, update vs create, syncAttachments)
+  - 78/78 tests passing
+  - Fix: fake-timer tests use `act()+fireEvent` instead of `userEvent.click` — RTL's internal polling hangs when `setInterval` is frozen by `vi.useFakeTimers()`
+
 - [ ] **Step 11** — History page
   - Paginated session list
   - Expand row to full detail
