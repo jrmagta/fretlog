@@ -8,7 +8,7 @@ const baseProps = {
   items: [] as { id: number; label: string }[],
   selectedIds: [] as number[],
   onToggle: vi.fn(),
-  onCreate: vi.fn<[], Promise<void>>().mockResolvedValue(undefined),
+  onCreate: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   createPlaceholder: 'Add a song…',
 };
 
@@ -75,7 +75,7 @@ describe('inline creation', () => {
   });
 
   it('calls onCreate with the trimmed label on submit', async () => {
-    const onCreate = vi.fn<[], Promise<void>>().mockResolvedValue(undefined);
+    const onCreate = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
     await userEvent.type(screen.getByRole('textbox'), ' Blackbird ');
     await userEvent.click(screen.getByRole('button', { name: /add/i }));
@@ -84,7 +84,7 @@ describe('inline creation', () => {
   });
 
   it('clears the input after successful creation', async () => {
-    const onCreate = vi.fn<[], Promise<void>>().mockResolvedValue(undefined);
+    const onCreate = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
     const input = screen.getByRole('textbox');
     await userEvent.type(input, 'Blackbird');
