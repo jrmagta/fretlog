@@ -38,7 +38,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend/src:/app/src
+      - ./backend/src:/app/src:z
 
   frontend:
     build: ./frontend
@@ -48,7 +48,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend/src:/app/src
+      - ./frontend/src:/app/src:z
 
 volumes:
   pgdata:

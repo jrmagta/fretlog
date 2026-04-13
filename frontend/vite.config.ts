@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['jr-pc1.jrmagta.home'],
+    allowedHosts: ['jr-pc1.jrmagta.home', 'jr-pc2.jrmagta.home'],
     proxy: {
       '/api': {
         target: 'http://backend:3000',
