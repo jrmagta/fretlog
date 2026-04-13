@@ -92,9 +92,11 @@
   - Delete with inline confirmation — no browser dialog
   - Dashboard "View all sessions →" footer link added
 
-- [ ] **Step 12** — Song & Technique library pages
-  - Add, edit, delete (soft-delete)
-  - Deleted items hidden from library but preserved in session history
+- [x] **Step 12** — Song & Technique library pages
+  - Single `Library` component at `/songs` and `/techniques`
+  - Inline add form, inline row editing, inline delete confirmation
+  - Items sorted alphabetically; soft-delete preserves session history
+  - Nav links from Dashboard footer and History header
 
 ### Phase 3 — Docs & CI
 
