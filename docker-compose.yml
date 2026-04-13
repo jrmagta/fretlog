@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16
+    image: docker.io/library/postgres:16
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-fretlog}
@@ -17,7 +17,7 @@ services:
       retries: 5
 
   db_test:
-    image: postgres:16
+    image: docker.io/library/postgres:16
     environment:
       POSTGRES_DB: fretlog_test
       POSTGRES_USER: fretlog
