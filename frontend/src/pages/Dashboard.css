@@ -509,6 +509,22 @@
   margin-top: 1.25rem;
   padding-top: 1.125rem;
   border-top: 1px solid rgba(74, 64, 53, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.library-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.library-links-sep {
+  color: var(--on-surface-variant);
+  opacity: 0.4;
+  font-size: var(--body-sm);
 }
 
 .view-all-link {

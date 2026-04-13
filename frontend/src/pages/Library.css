@@ -1,0 +1,201 @@
+/* ─── Page layout ─────────────────────────────────────────────────────────── */
+
+.library-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 3rem 5rem;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3.5rem;
+}
+
+.library-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.library-nav-link {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.library-nav-link:hover {
+  color: var(--primary);
+}
+
+
+/* ─── Title row ───────────────────────────────────────────────────────────── */
+
+.library-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.library-title-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+}
+
+.library-add-toggle {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.library-add-toggle:hover {
+  color: var(--tertiary);
+}
+
+.library-add-toggle.is-cancel {
+  color: var(--on-surface-variant);
+}
+
+.library-add-toggle.is-cancel:hover {
+  color: var(--on-surface);
+}
+
+/* ─── Add / Edit forms ────────────────────────────────────────────────────── */
+
+.library-add-form {
+  background: var(--surface-container-low);
+  border-radius: 1.125rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fade-up 0.22s ease;
+}
+
+.library-edit-form {
+  padding: 1.25rem 1.5rem 1.5rem;
+  animation: fade-up 0.15s ease;
+}
+
+.library-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.75rem;
+  margin-bottom: 1.375rem;
+}
+
+.library-form-fields .field:last-child {
+  grid-column: 1 / -1;
+}
+
+.library-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* ─── Item list ───────────────────────────────────────────────────────────── */
+
+.library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ─── Item row ────────────────────────────────────────────────────────────── */
+
+.library-row {
+  background: var(--surface-container-low);
+  border-radius: 1rem;
+  overflow: hidden;
+  animation: fade-up 0.45s ease both;
+  transition: background 0.2s ease;
+}
+
+.library-row:hover {
+  background: var(--surface-container);
+}
+
+.library-row.library-row-editing {
+  background: var(--surface-container);
+}
+
+.library-row-main {
+  display: flex;
+  align-items: center;
+}
+
+.library-row-body {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.library-primary {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--title-lg);
+  font-weight: 500;
+  color: var(--on-surface);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.library-secondary {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .library-page {
+    padding: 1.5rem 1.25rem 4rem;
+  }
+
+  .library-form-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .library-form-fields .field:last-child {
+    grid-column: auto;
+  }
+
+  .library-row-body {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+}

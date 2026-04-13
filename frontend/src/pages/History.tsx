@@ -82,7 +82,11 @@ export default function History() {
         <Link to="/" className="history-wordmark">
           <span className="wordmark-accent">F</span>RETLOG
         </Link>
-        <Link to="/sessions/new" className="new-session-link">+ New Session</Link>
+        <nav className="library-nav">
+          <Link to="/songs" className="library-nav-link">Songs</Link>
+          <Link to="/techniques" className="library-nav-link">Techniques</Link>
+          <Link to="/sessions/new" className="new-session-link">+ New Session</Link>
+        </nav>
       </header>
 
       <div className="history-content">
