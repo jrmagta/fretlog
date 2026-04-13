@@ -100,7 +100,15 @@
 
 ### Phase 3 — Docs & CI
 
-- [ ] **Step 13** — MkDocs + GitHub Actions
+- [ ] **Step 13** — Timer end-session overlay
+  - "End Session" button opens modal overlay instead of saving immediately
+  - Overlay shows pre-filled duration (read-only), date
+  - LibraryPicker for songs and techniques
+  - Notes and reference URL fields
+  - "Save Session" confirms and saves; "Discard" drops the session without saving
+  - Timer resets either way
+
+- [ ] **Step 14** — MkDocs + GitHub Actions
   - MkDocs Material for docs site
   - GitHub Actions workflow deploys to GitHub Pages on push to `main`
   - Docs already started: `docs/data-model.md`
