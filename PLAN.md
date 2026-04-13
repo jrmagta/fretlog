@@ -85,10 +85,12 @@
   - 78/78 tests passing
   - Fix: fake-timer tests use `act()+fireEvent` instead of `userEvent.click` — RTL's internal polling hangs when `setInterval` is frozen by `vi.useFakeTimers()`
 
-- [ ] **Step 11** — History page
-  - Paginated session list
-  - Expand row to full detail
-  - Edit and delete actions
+- [x] **Step 11** — History page
+  - Paginated session list at `/sessions` (20 per page, prev/next pagination)
+  - Expand row to fetch and show full detail inline (songs, techniques, notes, reference URL)
+  - Edit action links to `/sessions/:id/edit`
+  - Delete with inline confirmation — no browser dialog
+  - Dashboard "View all sessions →" footer link added
 
 - [ ] **Step 12** — Song & Technique library pages
   - Add, edit, delete (soft-delete)
