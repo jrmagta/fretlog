@@ -37,8 +37,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    security_opt:
+      - label=disable
     volumes:
-      - ./backend/src:/app/src:z
+      - ./backend/src:/app/src
 
   frontend:
     build: ./frontend
@@ -47,8 +49,10 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    security_opt:
+      - label=disable
     volumes:
-      - ./frontend/src:/app/src:z
+      - ./frontend/src:/app/src
 
 volumes:
   pgdata:
