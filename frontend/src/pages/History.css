@@ -1,0 +1,379 @@
+/* ─── Page layout ─────────────────────────────────────────────────────────── */
+
+.history-page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2.5rem 3rem 5rem;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3.5rem;
+}
+
+.history-wordmark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--on-surface);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.history-wordmark:hover {
+  opacity: 0.75;
+}
+
+/* ─── Title row ───────────────────────────────────────────────────────────── */
+
+.history-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.history-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--on-surface);
+  line-height: 1;
+  margin: 0;
+}
+
+.history-count {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  letter-spacing: 0.04em;
+}
+
+/* ─── Session list ────────────────────────────────────────────────────────── */
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* ─── Session row ─────────────────────────────────────────────────────────── */
+
+.history-row {
+  background: var(--surface-container-low);
+  border-radius: 1.125rem;
+  overflow: hidden;
+  animation: fade-up 0.5s ease both;
+  transition: background 0.2s ease;
+}
+
+.history-row.history-row-open {
+  background: var(--surface-container);
+}
+
+.history-row-main {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Clickable area: date strip + summary + chevron */
+.history-expand-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  min-width: 0;
+  transition: background 0.15s ease;
+}
+
+.history-expand-area:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Reuse date strip from Dashboard */
+.history-row .session-date-strip {
+  transition: background 0.2s ease;
+}
+
+.history-expand-area:hover .session-date-strip {
+  background: var(--surface-container-high);
+}
+
+.history-row-open .session-date-strip {
+  background: var(--surface-container-high);
+}
+
+.history-summary {
+  flex: 1;
+  padding: 1.125rem 1.25rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.history-notes-snippet {
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rotation chevron */
+.history-chevron {
+  padding: 0 1.125rem;
+  font-size: 1.25rem;
+  color: var(--on-surface-variant);
+  opacity: 0.5;
+  transform: rotate(0deg);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.history-chevron.is-open {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* Edit / Delete actions column */
+.history-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.875rem 1.125rem;
+  border-left: 1px solid rgba(74, 64, 53, 0.1);
+  flex-shrink: 0;
+}
+
+.history-action-link,
+.history-delete-btn {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--label-sm);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.history-action-link {
+  color: var(--primary);
+  background: rgba(192, 98, 42, 0.08);
+  border: none;
+  display: block;
+}
+
+.history-action-link:hover {
+  background: rgba(192, 98, 42, 0.18);
+}
+
+.history-delete-btn {
+  color: var(--on-surface-variant);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.history-delete-btn:hover {
+  background: rgba(255, 80, 60, 0.08);
+  color: #e05c4a;
+}
+
+/* ─── Delete confirmation ─────────────────────────────────────────────────── */
+
+.history-confirm {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  background: rgba(224, 92, 74, 0.06);
+  border-top: 1px solid rgba(224, 92, 74, 0.12);
+  animation: fade-up 0.2s ease;
+}
+
+.history-confirm-text {
+  flex: 1;
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  letter-spacing: 0.02em;
+}
+
+.history-confirm-yes {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--label-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: rgba(224, 92, 74, 0.15);
+  color: #e05c4a;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.history-confirm-yes:hover:not(:disabled) {
+  background: rgba(224, 92, 74, 0.28);
+}
+
+.history-confirm-yes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.history-confirm-cancel {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--label-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.875rem;
+  border: none;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.history-confirm-cancel:hover:not(:disabled) {
+  color: var(--on-surface);
+}
+
+/* ─── Expanded detail ─────────────────────────────────────────────────────── */
+
+.history-detail {
+  padding: 1.25rem 1.5rem 1.5rem calc(54px + 1.5rem); /* indent to align with summary */
+  border-top: 1px solid rgba(74, 64, 53, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  animation: fade-up 0.22s ease;
+}
+
+.history-detail-loading {
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  letter-spacing: 0.04em;
+}
+
+.history-detail-notes {
+  font-size: var(--body-md);
+  color: var(--on-surface);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.history-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-detail-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--label-sm);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.history-detail-empty {
+  font-size: var(--body-sm);
+  color: var(--on-surface-variant);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Pagination ──────────────────────────────────────────────────────────── */
+
+.history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(74, 64, 53, 0.12);
+}
+
+.history-page-btn {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.history-page-btn:hover:not(:disabled) {
+  background: var(--surface-container-high);
+}
+
+.history-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.history-page-info {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  letter-spacing: 0.06em;
+  min-width: 4rem;
+  text-align: center;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .history-page {
+    padding: 1.5rem 1.25rem 4rem;
+  }
+
+  .history-actions {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .history-detail {
+    padding: 1rem 1rem 1.25rem 1rem;
+  }
+
+  .history-confirm {
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+}

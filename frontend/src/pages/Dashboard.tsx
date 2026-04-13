@@ -308,6 +308,12 @@ export default function Dashboard() {
               })}
             </div>
           )}
+
+          {!loading && (
+            <div className="sessions-panel-footer">
+              <Link to="/sessions" className="view-all-link">View all sessions →</Link>
+            </div>
+          )}
         </section>
 
       </div>

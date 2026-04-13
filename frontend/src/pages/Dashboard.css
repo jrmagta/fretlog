@@ -503,6 +503,28 @@
   color: var(--primary);
 }
 
+/* ─── Sessions panel footer ───────────────────────────────────────────── */
+
+.sessions-panel-footer {
+  margin-top: 1.25rem;
+  padding-top: 1.125rem;
+  border-top: 1px solid rgba(74, 64, 53, 0.1);
+}
+
+.view-all-link {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.view-all-link:hover {
+  color: var(--primary);
+}
+
 /* ─── Animations ──────────────────────────────────────────────────────── */
 
 @keyframes fade-up {
