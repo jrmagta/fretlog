@@ -13,6 +13,10 @@ export default function Dashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Shared library data (used by both overlay and quick log)
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [techniques, setTechniques] = useState<Technique[]>([]);
+
   // Timer
   const [timerActive, setTimerActive] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -23,8 +27,6 @@ export default function Dashboard() {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayDuration, setOverlayDuration] = useState(0);
   const [overlayDate, setOverlayDate] = useState('');
-  const [overlaySongs, setOverlaySongs] = useState<Song[]>([]);
-  const [overlayTechniques, setOverlayTechniques] = useState<Technique[]>([]);
   const [selectedSongIds, setSelectedSongIds] = useState<number[]>([]);
   const [selectedTechIds, setSelectedTechIds] = useState<number[]>([]);
   const [overlayNotes, setOverlayNotes] = useState('');
@@ -39,6 +41,8 @@ export default function Dashboard() {
     notes: '',
     reference_url: '',
   });
+  const [quickSongIds, setQuickSongIds] = useState<number[]>([]);
+  const [quickTechIds, setQuickTechIds] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [justSaved, setJustSaved] = useState<'timer' | 'form' | null>(null);
 
@@ -51,12 +55,16 @@ export default function Dashboard() {
 
   async function loadData() {
     try {
-      const [statsData, sessionsData] = await Promise.all([
+      const [statsData, sessionsData, songsData, techniquesData] = await Promise.all([
         sessionsApi.stats(),
         sessionsApi.list(5, 0),
+        songsApi.list(),
+        techniquesApi.list(),
       ]);
       setStats(statsData);
       setSessions(sessionsData.data);
+      setSongs(songsData);
+      setTechniques(techniquesData);
     } finally {
       setLoading(false);
     }
@@ -65,6 +73,20 @@ export default function Dashboard() {
   function flashSaved(source: 'timer' | 'form') {
     setJustSaved(source);
     setTimeout(() => setJustSaved(null), 2200);
+  }
+
+  // ── Shared library helpers ─────────────────────────────────────────────
+
+  async function addNewSong(title: string): Promise<Song> {
+    const song = await songsApi.create({ title });
+    setSongs(prev => [...prev, song].sort((a, b) => a.title.localeCompare(b.title)));
+    return song;
+  }
+
+  async function addNewTechnique(name: string): Promise<Technique> {
+    const tech = await techniquesApi.create({ name });
+    setTechniques(prev => [...prev, tech].sort((a, b) => a.name.localeCompare(b.name)));
+    return tech;
   }
 
   // ── Timer ──────────────────────────────────────────────────────────────
@@ -78,24 +100,19 @@ export default function Dashboard() {
     }, 1000);
   }
 
-  async function stopTimer() {
+  function stopTimer() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setTimerActive(false);
 
     const duration = Math.max(1, Math.round(elapsed / 60));
     const date = startTimeRef.current!.toISOString().split('T')[0];
 
-    // Open overlay instead of saving immediately
     setOverlayDuration(duration);
     setOverlayDate(date);
     setOverlayNotes('');
     setOverlayRefUrl('');
     setSelectedSongIds([]);
     setSelectedTechIds([]);
-
-    const [songs, techniques] = await Promise.all([songsApi.list(), techniquesApi.list()]);
-    setOverlaySongs(songs);
-    setOverlayTechniques(techniques);
     setOverlayOpen(true);
   }
 
@@ -131,30 +148,6 @@ export default function Dashboard() {
     resetTimer();
   }
 
-  function toggleSong(id: number) {
-    setSelectedSongIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  }
-
-  function toggleTech(id: number) {
-    setSelectedTechIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  }
-
-  async function createSong(title: string) {
-    const song = await songsApi.create({ title });
-    setOverlaySongs(prev => [...prev, song].sort((a, b) => a.title.localeCompare(b.title)));
-    setSelectedSongIds(prev => [...prev, song.id]);
-  }
-
-  async function createTechnique(name: string) {
-    const tech = await techniquesApi.create({ name });
-    setOverlayTechniques(prev => [...prev, tech].sort((a, b) => a.name.localeCompare(b.name)));
-    setSelectedTechIds(prev => [...prev, tech.id]);
-  }
-
   // ── Quick log ──────────────────────────────────────────────────────────
 
   async function handleQuickLog(e: React.FormEvent) {
@@ -164,13 +157,19 @@ export default function Dashboard() {
 
     setSubmitting(true);
     try {
-      await sessionsApi.create({
+      const session = await sessionsApi.create({
         date: form.date,
         duration_minutes: mins,
         notes: form.notes || undefined,
         reference_url: form.reference_url || undefined,
       });
+      await Promise.all([
+        ...quickSongIds.map(id => sessionsApi.attachSong(session.id, id)),
+        ...quickTechIds.map(id => sessionsApi.attachTechnique(session.id, id)),
+      ]);
       setForm({ date: today, duration_minutes: '', notes: '', reference_url: '' });
+      setQuickSongIds([]);
+      setQuickTechIds([]);
       flashSaved('form');
       await loadData();
     } finally {
@@ -202,19 +201,29 @@ export default function Dashboard() {
 
             <LibraryPicker
               heading="Songs"
-              items={overlaySongs.map(s => ({ id: s.id, label: s.title }))}
+              items={songs.map(s => ({ id: s.id, label: s.title }))}
               selectedIds={selectedSongIds}
-              onToggle={toggleSong}
-              onCreate={createSong}
+              onToggle={id => setSelectedSongIds(prev =>
+                prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+              )}
+              onCreate={async title => {
+                const song = await addNewSong(title);
+                setSelectedSongIds(prev => [...prev, song.id]);
+              }}
               createPlaceholder="Add a song…"
             />
 
             <LibraryPicker
               heading="Techniques"
-              items={overlayTechniques.map(t => ({ id: t.id, label: t.name }))}
+              items={techniques.map(t => ({ id: t.id, label: t.name }))}
               selectedIds={selectedTechIds}
-              onToggle={toggleTech}
-              onCreate={createTechnique}
+              onToggle={id => setSelectedTechIds(prev =>
+                prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+              )}
+              onCreate={async name => {
+                const tech = await addNewTechnique(name);
+                setSelectedTechIds(prev => [...prev, tech.id]);
+              }}
               createPlaceholder="Add a technique…"
             />
 
@@ -354,6 +363,34 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
+
+              <LibraryPicker
+                heading="Songs"
+                items={songs.map(s => ({ id: s.id, label: s.title }))}
+                selectedIds={quickSongIds}
+                onToggle={id => setQuickSongIds(prev =>
+                  prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                )}
+                onCreate={async title => {
+                  const song = await addNewSong(title);
+                  setQuickSongIds(prev => [...prev, song.id]);
+                }}
+                createPlaceholder="Add a song…"
+              />
+
+              <LibraryPicker
+                heading="Techniques"
+                items={techniques.map(t => ({ id: t.id, label: t.name }))}
+                selectedIds={quickTechIds}
+                onToggle={id => setQuickTechIds(prev =>
+                  prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                )}
+                onCreate={async name => {
+                  const tech = await addNewTechnique(name);
+                  setQuickTechIds(prev => [...prev, tech.id]);
+                }}
+                createPlaceholder="Add a technique…"
+              />
 
               <div className="field">
                 <label className="field-label" htmlFor="ql-notes">Notes</label>

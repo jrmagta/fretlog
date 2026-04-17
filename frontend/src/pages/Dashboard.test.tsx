@@ -57,6 +57,11 @@ const mockCreate: Session = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // loadData() fetches songs and techniques alongside stats/sessions — default to empty
+  vi.mocked(songsApi.list).mockResolvedValue([]);
+  vi.mocked(techniquesApi.list).mockResolvedValue([]);
+  vi.mocked(sessionsApi.attachSong).mockResolvedValue(undefined);
+  vi.mocked(sessionsApi.attachTechnique).mockResolvedValue(undefined);
 });
 
 function renderDashboard() {
@@ -241,10 +246,6 @@ describe('timer', () => {
     vi.mocked(sessionsApi.stats).mockResolvedValue({ streak_days: 0, week_minutes: 0, month_minutes: 0 });
     vi.mocked(sessionsApi.list).mockResolvedValue(emptySessions);
     vi.mocked(sessionsApi.create).mockResolvedValue(mockCreate);
-    vi.mocked(sessionsApi.attachSong).mockResolvedValue(undefined);
-    vi.mocked(sessionsApi.attachTechnique).mockResolvedValue(undefined);
-    vi.mocked(songsApi.list).mockResolvedValue([]);
-    vi.mocked(techniquesApi.list).mockResolvedValue([]);
   });
 
   afterEach(() => {
