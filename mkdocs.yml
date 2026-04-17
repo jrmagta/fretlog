@@ -1,0 +1,25 @@
+site_name: Fretlog
+site_url: https://jrmagta.github.io/fretlog/
+site_description: A self-hosted guitar practice tracking app
+repo_url: https://github.com/jrmagta/fretlog
+repo_name: jrmagta/fretlog
+docs_dir: docs
+exclude_docs: |
+  superpowers/
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep orange
+    accent: amber
+  features:
+    - navigation.instant
+    - navigation.top
+    - content.code.copy
+    - content.tables
+
+nav:
+  - Overview: index.md
+  - Data model: data-model.md
+  - API reference: api.md
