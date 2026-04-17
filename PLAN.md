@@ -118,6 +118,30 @@
   - `.github/workflows/docs.yml` — deploys to GitHub Pages via `mkdocs gh-deploy` on push to `main`
   - `mkdocs build --strict` passes cleanly
 
+### Phase 4 — Enriched Song Model
+
+- [ ] **Step 15** — Song model: album, cover art via iTunes
+  - **Goal:** make songs more meaningful — title, artist, album, and cover art thumbnail
+  - **Schema:** migration `002_songs_album_cover.sql` adds `album TEXT` and `cover_art_url TEXT`
+    to `songs` (nullable, idempotent)
+  - **Backend:** include `album` and `cover_art_url` in songs create/update routes and TS types
+    (`Song`, `CreateSongInput`)
+  - **Library page — forms:** add `Album` field alongside Title and Artist in the add and inline
+    edit forms (layout TBD: third column or second row)
+  - **Library page — cover art lookup:** "Find cover art" button in the add/edit form; searches
+    iTunes Search API directly from the browser (supports CORS, no proxy needed):
+    `GET https://itunes.apple.com/search?term={title}+{artist}&entity=song&limit=6`
+    Returns up to 6 thumbnails (`artworkUrl100`; replace `100x100bb` → `600x600bb` for full res).
+    User clicks a thumbnail to set `cover_art_url`; show selected art preview inline in form;
+    "Clear" option if art is already set.
+  - **Library page — rows:** show cover art thumbnail (small square) on left of each row when
+    `cover_art_url` is set, placeholder otherwise
+  - **LibraryPicker:** no changes for now — art lookup is Library page only
+  - **Open questions before starting:**
+    1. Form layout — Album in a third column on the same row as Title/Artist, or a second row?
+    2. Art preview — inline in form before saving, or only visible in the row after save?
+    3. Backend tests — extend existing song CRUD tests or just keep them passing?
+
 ## Key Design Decisions
 
 - **Soft-delete** on songs/techniques preserves historical session data when library items are removed
