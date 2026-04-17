@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import './LibraryPicker.css';
 
 interface PickerItem {
@@ -23,17 +23,40 @@ export default function LibraryPicker({
   onCreate,
   createPlaceholder,
 }: LibraryPickerProps) {
-  const [newLabel, setNewLabel] = useState('');
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    const label = newLabel.trim();
-    if (!label) return;
+  const trimmed = query.trim();
+
+  const selectedItems = items.filter(i => selectedIds.includes(i.id));
+  const unselectedItems = items.filter(i => !selectedIds.includes(i.id));
+
+  const filtered = trimmed
+    ? unselectedItems.filter(i => i.label.toLowerCase().includes(trimmed.toLowerCase()))
+    : unselectedItems;
+
+  const exactMatch = trimmed
+    ? items.some(i => i.label.toLowerCase() === trimmed.toLowerCase())
+    : false;
+
+  const showAddOption = trimmed.length > 0 && !exactMatch;
+  const showDropdown = open && (filtered.length > 0 || showAddOption);
+
+  function handleSelect(id: number) {
+    onToggle(id);
+    setQuery('');
+    inputRef.current?.focus();
+  }
+
+  async function handleCreate() {
+    if (!trimmed || creating) return;
     setCreating(true);
     try {
-      await onCreate(label);
-      setNewLabel('');
+      await onCreate(trimmed);
+      setQuery('');
+      inputRef.current?.focus();
     } finally {
       setCreating(false);
     }
@@ -43,45 +66,65 @@ export default function LibraryPicker({
     <div className="library-picker">
       <div className="picker-heading">{heading}</div>
 
-      {items.length === 0 ? (
-        <div className="picker-empty">Nothing in your library yet — add one below.</div>
-      ) : (
-        <div className="picker-chips">
-          {items.map(item => {
-            const active = selectedIds.includes(item.id);
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={`picker-chip${active ? ' chip-active' : ''}`}
-                onClick={() => onToggle(item.id)}
-              >
-                {item.label}
-                {active && <span className="chip-mark" aria-hidden>✦</span>}
-              </button>
-            );
-          })}
+      {selectedItems.length > 0 && (
+        <div className="picker-tags">
+          {selectedItems.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              className="picker-tag"
+              onClick={() => onToggle(item.id)}
+              aria-label={`Remove ${item.label}`}
+            >
+              {item.label}
+              <span className="picker-tag-remove" aria-hidden>×</span>
+            </button>
+          ))}
         </div>
       )}
 
-      <form className="picker-add-row" onSubmit={handleCreate}>
+      <div className="picker-combobox">
         <input
+          ref={inputRef}
           type="text"
-          className="picker-add-input"
+          className="picker-input"
           placeholder={createPlaceholder}
-          value={newLabel}
-          onChange={e => setNewLabel(e.target.value)}
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
           disabled={creating}
+          autoComplete="off"
         />
-        <button
-          type="submit"
-          className="picker-add-btn"
-          disabled={!newLabel.trim() || creating}
-          aria-label="Add"
-        >
-          {creating ? '…' : '+'}
-        </button>
-      </form>
+
+        {showDropdown && (
+          <ul className="picker-dropdown" role="listbox">
+            {filtered.map(item => (
+              <li
+                key={item.id}
+                role="option"
+                aria-selected={false}
+                className="picker-option"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => handleSelect(item.id)}
+              >
+                {item.label}
+              </li>
+            ))}
+            {showAddOption && (
+              <li
+                role="option"
+                aria-selected={false}
+                className="picker-option picker-option-create"
+                onMouseDown={e => e.preventDefault()}
+                onClick={handleCreate}
+              >
+                {creating ? 'Adding…' : <>Add <strong>"{trimmed}"</strong></>}
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

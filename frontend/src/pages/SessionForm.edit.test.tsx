@@ -105,13 +105,15 @@ describe('pre-population', () => {
   it('marks originally linked song as active', async () => {
     renderEdit();
     await screen.findByText('Edit Session');
-    expect(screen.getByRole('button', { name: 'Blackbird' })).toHaveClass('chip-active');
+    // Blackbird (id=1) is linked — appears as a removable tag
+    expect(screen.getByRole('button', { name: 'Remove Blackbird' })).toBeInTheDocument();
   });
 
   it('does not mark unlinked song as active', async () => {
     renderEdit();
     await screen.findByText('Edit Session');
-    expect(screen.getByRole('button', { name: 'Yesterday' })).not.toHaveClass('chip-active');
+    // Yesterday (id=3) is not linked — no tag for it
+    expect(screen.queryByRole('button', { name: 'Remove Yesterday' })).not.toBeInTheDocument();
   });
 });
 
@@ -148,8 +150,9 @@ describe('syncAttachments', () => {
     renderEdit();
     await screen.findByText('Edit Session');
 
-    // Yesterday (id=3) is not currently linked — select it
-    await userEvent.click(screen.getByRole('button', { name: 'Yesterday' }));
+    // Yesterday (id=3) is not linked — focus songs input and select from dropdown
+    await userEvent.click(screen.getByPlaceholderText('Add a song…'));
+    await userEvent.click(screen.getByRole('option', { name: 'Yesterday' }));
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(sessionsApi.attachSong).toHaveBeenCalledWith(5, 3);
@@ -160,8 +163,8 @@ describe('syncAttachments', () => {
     renderEdit();
     await screen.findByText('Edit Session');
 
-    // Blackbird (id=1) is currently linked — deselect it
-    await userEvent.click(screen.getByRole('button', { name: 'Blackbird' }));
+    // Blackbird (id=1) is currently linked — remove it via its tag
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Blackbird' }));
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(sessionsApi.detachSong).toHaveBeenCalledWith(5, 1);
@@ -188,8 +191,9 @@ describe('syncAttachments', () => {
     renderEdit();
     await screen.findByText('Edit Session');
 
-    // Vibrato (id=4) is not currently linked — select it
-    await userEvent.click(screen.getByRole('button', { name: 'Vibrato' }));
+    // Vibrato (id=4) is not linked — focus techniques input and select from dropdown
+    await userEvent.click(screen.getByPlaceholderText('Add a technique…'));
+    await userEvent.click(screen.getByRole('option', { name: 'Vibrato' }));
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(sessionsApi.attachTechnique).toHaveBeenCalledWith(5, 4);
@@ -200,8 +204,8 @@ describe('syncAttachments', () => {
     renderEdit();
     await screen.findByText('Edit Session');
 
-    // Fingerpicking (id=2) is currently linked — deselect it
-    await userEvent.click(screen.getByRole('button', { name: 'Fingerpicking' }));
+    // Fingerpicking (id=2) is currently linked — remove it via its tag
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Fingerpicking' }));
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(sessionsApi.detachTechnique).toHaveBeenCalledWith(5, 2);

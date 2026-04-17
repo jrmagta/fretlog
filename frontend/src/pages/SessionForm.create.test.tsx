@@ -74,7 +74,10 @@ describe('create mode rendering', () => {
   it('loads and renders the songs library', async () => {
     vi.mocked(songsApi.list).mockResolvedValue([songBlackbird]);
     renderCreate();
-    expect(await screen.findByRole('button', { name: 'Blackbird' })).toBeInTheDocument();
+    // Focus the songs input — library items appear as dropdown options
+    const input = await screen.findByPlaceholderText('Add a song…');
+    await userEvent.click(input);
+    expect(screen.getByRole('option', { name: 'Blackbird' })).toBeInTheDocument();
   });
 
   it('loads and renders the techniques library', async () => {
@@ -82,7 +85,9 @@ describe('create mode rendering', () => {
       { id: 2, name: 'Fingerpicking', category: null, reference_url: null, created_at: '' },
     ]);
     renderCreate();
-    expect(await screen.findByRole('button', { name: 'Fingerpicking' })).toBeInTheDocument();
+    const input = await screen.findByPlaceholderText('Add a technique…');
+    await userEvent.click(input);
+    expect(screen.getByRole('option', { name: 'Fingerpicking' })).toBeInTheDocument();
   });
 });
 
@@ -126,8 +131,9 @@ describe('song attachment', () => {
     vi.mocked(songsApi.list).mockResolvedValue([songBlackbird]);
     renderCreate();
 
-    await screen.findByRole('button', { name: 'Blackbird' });
-    await userEvent.click(screen.getByRole('button', { name: 'Blackbird' }));
+    // Select Blackbird from the dropdown
+    await userEvent.click(await screen.findByPlaceholderText('Add a song…'));
+    await userEvent.click(screen.getByRole('option', { name: 'Blackbird' }));
     await userEvent.type(screen.getByLabelText(/duration/i), '30');
     await userEvent.click(screen.getByRole('button', { name: /log session/i }));
 
@@ -145,7 +151,7 @@ describe('song attachment', () => {
 });
 
 describe('inline song creation', () => {
-  it('creates a new song inline, marks it active, and attaches it on submit', async () => {
+  it('creates a new song inline, adds it as a tag, and attaches it on submit', async () => {
     const newSong: Song = { id: 10, title: 'Hotel California', artist: null, reference_url: null, created_at: '' };
     vi.mocked(songsApi.create).mockResolvedValue(newSong);
     vi.mocked(sessionsApi.create).mockResolvedValue({ ...createdSession, id: 7 });
@@ -153,13 +159,12 @@ describe('inline song creation', () => {
 
     renderCreate();
 
-    // Type into the Songs picker input and press Enter to submit the picker form
-    const songInput = screen.getByPlaceholderText('Add a song…');
-    await userEvent.type(songInput, 'Hotel California');
-    await userEvent.keyboard('{Enter}');
+    // Type into the Songs picker input and click the Add option in the dropdown
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), 'Hotel California');
+    await userEvent.click(screen.getByRole('option', { name: /add.*hotel california/i }));
 
-    // New song appears as an active chip
-    expect(await screen.findByRole('button', { name: 'Hotel California' })).toHaveClass('chip-active');
+    // New song appears as a removable tag (selected)
+    expect(await screen.findByRole('button', { name: 'Remove Hotel California' })).toBeInTheDocument();
 
     // Submit session form
     await userEvent.type(screen.getByLabelText(/duration/i), '30');

@@ -17,68 +17,105 @@ beforeEach(() => {
   baseProps.onCreate.mockResolvedValue(undefined);
 });
 
+// ── Rendering ─────────────────────────────────────────────────────────────────
+
 describe('rendering', () => {
   it('shows the heading', () => {
     render(<LibraryPicker {...baseProps} />);
     expect(screen.getByText('Songs')).toBeInTheDocument();
   });
 
-  it('shows empty-state message when items is empty', () => {
+  it('shows the text input with placeholder', () => {
     render(<LibraryPicker {...baseProps} />);
-    expect(screen.getByText(/nothing in your library/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Add a song…')).toBeInTheDocument();
   });
 
-  it('renders one chip per item', () => {
+  it('shows unselected items as options in dropdown when input is focused', async () => {
     render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }, { id: 2, label: 'Yesterday' }]} />);
-    expect(screen.getByRole('button', { name: 'Blackbird' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Yesterday' })).toBeInTheDocument();
+    await userEvent.click(screen.getByPlaceholderText('Add a song…'));
+    expect(screen.getByRole('option', { name: 'Blackbird' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Yesterday' })).toBeInTheDocument();
   });
 
-  it('active chip has the chip-active class', () => {
+  it('selected items appear as removable tags above the input', () => {
     render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} selectedIds={[1]} />);
-    expect(screen.getByRole('button', { name: 'Blackbird' })).toHaveClass('chip-active');
+    expect(screen.getByRole('button', { name: 'Remove Blackbird' })).toBeInTheDocument();
   });
 
-  it('inactive chip does not have the chip-active class', () => {
+  it('unselected items do not appear as tags', () => {
     render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} selectedIds={[]} />);
-    expect(screen.getByRole('button', { name: 'Blackbird' })).not.toHaveClass('chip-active');
+    expect(screen.queryByRole('button', { name: 'Remove Blackbird' })).not.toBeInTheDocument();
+  });
+
+  it('selected items are excluded from the dropdown', async () => {
+    render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} selectedIds={[1]} />);
+    await userEvent.click(screen.getByPlaceholderText('Add a song…'));
+    expect(screen.queryByRole('option', { name: 'Blackbird' })).not.toBeInTheDocument();
   });
 });
 
-describe('chip interaction', () => {
-  it('clicking a chip calls onToggle with its id', async () => {
+// ── Selection ─────────────────────────────────────────────────────────────────
+
+describe('selection', () => {
+  it('selecting from dropdown calls onToggle with the item id', async () => {
     const onToggle = vi.fn();
     render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} onToggle={onToggle} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Blackbird' }));
+    await userEvent.click(screen.getByPlaceholderText('Add a song…'));
+    await userEvent.click(screen.getByRole('option', { name: 'Blackbird' }));
     expect(onToggle).toHaveBeenCalledOnce();
     expect(onToggle).toHaveBeenCalledWith(1);
   });
 
-  it('clicking an active chip also calls onToggle (parent owns toggle state)', async () => {
+  it('clicking a tag remove button calls onToggle with the item id', async () => {
     const onToggle = vi.fn();
     render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} selectedIds={[1]} onToggle={onToggle} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Blackbird' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Blackbird' }));
     expect(onToggle).toHaveBeenCalledWith(1);
+  });
+
+  it('filters dropdown options by the typed query', async () => {
+    render(<LibraryPicker {...baseProps} items={[
+      { id: 1, label: 'Blackbird' },
+      { id: 2, label: 'Yesterday' },
+    ]} />);
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), 'Black');
+    expect(screen.getByRole('option', { name: 'Blackbird' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Yesterday' })).not.toBeInTheDocument();
   });
 });
 
+// ── Inline creation ───────────────────────────────────────────────────────────
+
 describe('inline creation', () => {
-  it('submit button is disabled when input is empty', () => {
+  it('does not show add option when input is empty', async () => {
     render(<LibraryPicker {...baseProps} />);
-    expect(screen.getByRole('button', { name: /add/i })).toBeDisabled();
+    await userEvent.click(screen.getByPlaceholderText('Add a song…'));
+    expect(screen.queryByRole('option', { name: /add/i })).not.toBeInTheDocument();
   });
 
-  it('submit button is disabled when input is whitespace only', async () => {
+  it('does not show add option when input is whitespace only', async () => {
     render(<LibraryPicker {...baseProps} />);
-    await userEvent.type(screen.getByRole('textbox'), '   ');
-    expect(screen.getByRole('button', { name: /add/i })).toBeDisabled();
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), '   ');
+    expect(screen.queryByRole('option', { name: /add/i })).not.toBeInTheDocument();
   });
 
-  it('calls onCreate with the trimmed label on submit', async () => {
+  it('does not show add option when query exactly matches an existing item', async () => {
+    render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} />);
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), 'Blackbird');
+    expect(screen.queryByRole('option', { name: /add/i })).not.toBeInTheDocument();
+  });
+
+  it('shows add option when query does not match any item', async () => {
+    render(<LibraryPicker {...baseProps} items={[{ id: 1, label: 'Blackbird' }]} />);
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), 'Yesterday');
+    expect(screen.getByRole('option', { name: /add.*yesterday/i })).toBeInTheDocument();
+  });
+
+  it('calls onCreate with the trimmed label when add option is clicked', async () => {
     const onCreate = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
-    await userEvent.type(screen.getByRole('textbox'), ' Blackbird ');
-    await userEvent.click(screen.getByRole('button', { name: /add/i }));
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), ' Blackbird ');
+    await userEvent.click(screen.getByRole('option', { name: /add.*blackbird/i }));
     expect(onCreate).toHaveBeenCalledOnce();
     expect(onCreate).toHaveBeenCalledWith('Blackbird');
   });
@@ -86,36 +123,25 @@ describe('inline creation', () => {
   it('clears the input after successful creation', async () => {
     const onCreate = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
-    const input = screen.getByRole('textbox');
+    const input = screen.getByPlaceholderText('Add a song…');
     await userEvent.type(input, 'Blackbird');
-    await userEvent.click(screen.getByRole('button', { name: /add/i }));
+    await userEvent.click(screen.getByRole('option', { name: /add.*blackbird/i }));
     expect(input).toHaveValue('');
   });
 
-  it('shows spinner and disables input while onCreate is in-flight', async () => {
+  it('shows "Adding…" and disables input while onCreate is in-flight', async () => {
     let resolveCreate!: () => void;
     const onCreate = vi.fn().mockReturnValue(new Promise<void>(r => { resolveCreate = r; }));
     render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
-    await userEvent.type(screen.getByRole('textbox'), 'Blackbird');
+    await userEvent.type(screen.getByPlaceholderText('Add a song…'), 'Blackbird');
 
-    // Don't await — we want to inspect in-flight state
-    userEvent.click(screen.getByRole('button', { name: /add/i }));
+    // Don't await — inspect in-flight state
+    userEvent.click(screen.getByRole('option', { name: /add.*blackbird/i }));
 
-    // findByText polls via waitFor until '…' appears (creating=true)
-    await screen.findByText('…');
-    expect(screen.getByRole('textbox')).toBeDisabled();
+    await screen.findByText('Adding…');
+    expect(screen.getByPlaceholderText('Add a song…')).toBeDisabled();
 
-    // Clean up: resolve and let the click finish
+    // Clean up
     resolveCreate();
-    await screen.findByText('+'); // creating=false
-  });
-
-  it('does not call onCreate when label is whitespace only', async () => {
-    const onCreate = vi.fn();
-    render(<LibraryPicker {...baseProps} onCreate={onCreate} />);
-    await userEvent.type(screen.getByRole('textbox'), '   ');
-    // Button is disabled — form cannot be submitted
-    expect(screen.getByRole('button', { name: /add/i })).toBeDisabled();
-    expect(onCreate).not.toHaveBeenCalled();
   });
 });
