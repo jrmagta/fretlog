@@ -4,13 +4,20 @@ A self-hosted guitar practice tracking app.
 
 Log your practice sessions, track songs and techniques, and see your streaks and weekly/monthly totals — all running locally with a single command.
 
+## Features
+
+- **Live timer** — start a session, stop when done; an overlay collects songs, techniques, notes, and a reference URL before saving
+- **Manual quick-log** — enter duration, date, songs, techniques, notes, and a reference URL directly from the dashboard
+- **Song & technique library** — reusable library with inline add, edit, and delete; soft-delete preserves historical session data
+- **Session history** — paginated list, expand a row to see full detail, edit or delete inline
+- **Stats** — practice streak, weekly total, monthly total
+
 ## Stack
 
 - **Frontend:** React + Vite + TypeScript
 - **Backend:** Node.js + Express + TypeScript
 - **Database:** PostgreSQL
 - **Infra:** podman-compose (or docker compose)
-- **Docs:** MkDocs Material → GitHub Pages
 
 ## Getting started
 
@@ -29,21 +36,30 @@ The app will be available at `http://localhost:5173`.
 
 ### Running tests
 
-Tests run against a real Postgres instance on port 5433. Make sure `db_test` is up first:
+**Frontend** (Vitest + React Testing Library, no database required):
+
+```bash
+cd frontend
+npm install
+npm test          # run once
+npm run test:watch  # watch mode
+```
+
+**Backend** (Vitest + Supertest against a real Postgres instance on port 5433):
 
 ```bash
 podman-compose up -d db_test
 cd backend
 npm install
-npm test          # run once
-npm run test:watch  # watch mode
+npm test
+npm run test:watch
 ```
 
 ### Project structure
 
 ```
 fretlog/
-├── backend/          # Express API (TypeScript)
+├── backend/
 │   └── src/
 │       ├── app.ts
 │       ├── db.ts
@@ -51,8 +67,17 @@ fretlog/
 │       ├── migrations/
 │       ├── routes/
 │       └── tests/
-├── frontend/         # React + Vite (coming soon)
-├── docs/             # MkDocs source
+├── frontend/
+│   └── src/
+│       ├── api/          # typed fetch wrappers + shared types
+│       ├── components/   # LibraryPicker (combobox)
+│       ├── pages/        # Dashboard, SessionForm, History, Library
+│       └── utils/        # date formatting helpers
+├── docs/
+│   └── data-model.md
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── docker-compose.yml
 └── PLAN.md
 ```
@@ -62,7 +87,7 @@ fretlog/
 | Command | Description |
 |---|---|
 | `podman-compose up` | Start everything |
-| `podman-compose up -d db_test` | Start the test DB |
+| `podman-compose up -d db_test` | Start the test DB only |
 | `podman-compose down` | Stop all services |
 | `podman-compose up --build` | Rebuild after dependency changes |
 
@@ -80,6 +105,7 @@ podman-compose exec db psql -U fretlog -d fretlog -c \
 | GET | `/api/health` | Health check |
 | GET | `/api/sessions` | List sessions (paginated) |
 | POST | `/api/sessions` | Create a session |
+| GET | `/api/sessions/stats` | Streak, weekly + monthly totals |
 | GET | `/api/sessions/:id` | Get session with songs + techniques |
 | PUT | `/api/sessions/:id` | Update a session |
 | DELETE | `/api/sessions/:id` | Delete a session |

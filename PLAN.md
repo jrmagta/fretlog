@@ -71,18 +71,18 @@
 
 - [x] **Step 10** — Session form
   - Full-page form at `/sessions/new` and `/sessions/:id/edit`
-  - Tag-style LibraryPicker component for songs + techniques with inline creation
+  - `LibraryPicker` combobox component for songs + techniques with inline creation
   - Syncs attachments on edit (diffs original vs selected, attaches/detaches)
   - react-router-dom added for navigation
   - Hostname access via `jr-pc1.jrmagta.home` — `allowedHosts` in vite.config.ts
 
 - [x] **Step 10.5** — Frontend component tests
   - Vitest jsdom environment + React Testing Library + jest-dom
-  - `LibraryPicker`: 13 tests (rendering, chip interaction, inline creation)
-  - `Dashboard`: 21 tests (data loading, session cards, quick log form, flash timing, timer with fake timers)
+  - `LibraryPicker`: 16 tests (rendering, selection, inline creation)
+  - `Dashboard`: 22 tests (data loading, session cards, quick log form, flash timing, timer with fake timers)
   - `SessionForm` create mode: 10 tests (rendering, submission, song attachment, inline creation)
   - `SessionForm` edit mode: 13 tests (loading, pre-population, update vs create, syncAttachments)
-  - 78/78 tests passing
+  - 82/82 tests passing
   - Fix: fake-timer tests use `act()+fireEvent` instead of `userEvent.click` — RTL's internal polling hangs when `setInterval` is frozen by `vi.useFakeTimers()`
 
 - [x] **Step 11** — History page
@@ -100,14 +100,15 @@
 
 ### Phase 3 — Docs & CI
 
-- [x] **Step 13** — Timer end-session overlay
+- [x] **Step 13** — Timer end-session overlay + quick log songs/techniques
   - "End Session" button opens modal overlay instead of saving immediately
-  - Overlay shows pre-filled duration (read-only), date
-  - LibraryPicker for songs and techniques
-  - Notes and reference URL fields
-  - "Save Session" confirms and saves; "Discard" drops the session without saving
-  - Timer resets either way
-  - 79/79 tests passing
+  - Overlay shows pre-filled duration (read-only), date, LibraryPicker for songs + techniques, notes, reference URL
+  - "Save Session" confirms and saves; "Discard" drops the session without saving; timer resets either way
+  - Manual quick-log form on Dashboard also gains songs + techniques pickers (consistent with overlay)
+  - Library data loaded once at mount and shared between overlay and quick-log form
+  - LibraryPicker redesigned from chips to typeahead combobox: text input filters items as you type,
+    selected items shown as removable tags, "Add '…'" option appears when query has no exact match
+  - 82/82 tests passing
 
 - [ ] **Step 14** — MkDocs + GitHub Actions
   - MkDocs Material for docs site
