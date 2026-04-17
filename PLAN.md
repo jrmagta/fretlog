@@ -110,10 +110,13 @@
     selected items shown as removable tags, "Add '…'" option appears when query has no exact match
   - 82/82 tests passing
 
-- [ ] **Step 14** — MkDocs + GitHub Actions
-  - MkDocs Material for docs site
-  - GitHub Actions workflow deploys to GitHub Pages on push to `main`
-  - Docs already started: `docs/data-model.md`
+- [x] **Step 14** — MkDocs + GitHub Actions
+  - MkDocs Material (slate theme, deep-orange/amber palette)
+  - `docs/index.md` — overview, features, getting started, dev commands
+  - `docs/api.md` — full API reference with request/response details
+  - `docs/data-model.md` — schema and design decisions (pre-existing)
+  - `.github/workflows/docs.yml` — deploys to GitHub Pages via `mkdocs gh-deploy` on push to `main`
+  - `mkdocs build --strict` passes cleanly
 
 ## Key Design Decisions
 
