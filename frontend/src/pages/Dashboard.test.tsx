@@ -4,11 +4,29 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import { sessionsApi } from '../api/sessions';
+import { songsApi } from '../api/songs';
+import { techniquesApi } from '../api/techniques';
 import type { Session, Stats } from '../api/types';
 
 vi.mock('../api/sessions', () => ({
   sessionsApi: {
     stats: vi.fn(),
+    list: vi.fn(),
+    create: vi.fn(),
+    attachSong: vi.fn(),
+    attachTechnique: vi.fn(),
+  },
+}));
+
+vi.mock('../api/songs', () => ({
+  songsApi: {
+    list: vi.fn(),
+    create: vi.fn(),
+  },
+}));
+
+vi.mock('../api/techniques', () => ({
+  techniquesApi: {
     list: vi.fn(),
     create: vi.fn(),
   },
@@ -223,6 +241,10 @@ describe('timer', () => {
     vi.mocked(sessionsApi.stats).mockResolvedValue({ streak_days: 0, week_minutes: 0, month_minutes: 0 });
     vi.mocked(sessionsApi.list).mockResolvedValue(emptySessions);
     vi.mocked(sessionsApi.create).mockResolvedValue(mockCreate);
+    vi.mocked(sessionsApi.attachSong).mockResolvedValue(undefined);
+    vi.mocked(sessionsApi.attachTechnique).mockResolvedValue(undefined);
+    vi.mocked(songsApi.list).mockResolvedValue([]);
+    vi.mocked(techniquesApi.list).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -254,7 +276,21 @@ describe('timer', () => {
     expect(screen.getByText('01:30')).toBeInTheDocument();
   });
 
-  it('calls sessionsApi.create with duration in minutes when stopped', async () => {
+  it('opens overlay when End Session is clicked', async () => {
+    renderDashboard();
+    await act(async () => {
+      screen.getByRole('button', { name: /start practice/i }).click();
+    });
+    act(() => { vi.advanceTimersByTime(60_000); });
+    await act(async () => {
+      screen.getByRole('button', { name: /end session/i }).click();
+    });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save session/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /discard/i })).toBeInTheDocument();
+  });
+
+  it('calls sessionsApi.create with duration in minutes when overlay saved', async () => {
     renderDashboard();
     await act(async () => {
       screen.getByRole('button', { name: /start practice/i }).click();
@@ -262,6 +298,9 @@ describe('timer', () => {
     act(() => { vi.advanceTimersByTime(90_000); }); // 90s → Math.round(1.5) = 2 minutes
     await act(async () => {
       screen.getByRole('button', { name: /end session/i }).click();
+    });
+    await act(async () => {
+      screen.getByRole('button', { name: /save session/i }).click();
     });
     expect(sessionsApi.create).toHaveBeenCalledWith(
       expect.objectContaining({ duration_minutes: 2 }),
@@ -277,12 +316,15 @@ describe('timer', () => {
     await act(async () => {
       screen.getByRole('button', { name: /end session/i }).click();
     });
+    await act(async () => {
+      screen.getByRole('button', { name: /save session/i }).click();
+    });
     expect(sessionsApi.create).toHaveBeenCalledWith(
       expect.objectContaining({ duration_minutes: 1 }),
     );
   });
 
-  it('resets display to 00:00 and Ready state after stopping', async () => {
+  it('resets display to 00:00 and Ready state after discarding overlay', async () => {
     renderDashboard();
     await act(async () => {
       screen.getByRole('button', { name: /start practice/i }).click();
@@ -290,12 +332,15 @@ describe('timer', () => {
     act(() => { vi.advanceTimersByTime(60_000); });
     await act(async () => {
       screen.getByRole('button', { name: /end session/i }).click();
+    });
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /discard/i }));
     });
     expect(screen.getByText('00:00')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /start practice/i })).toBeInTheDocument();
   });
 
-  it('shows Saved flash after stopping', async () => {
+  it('shows Saved flash after saving overlay', async () => {
     renderDashboard();
     await act(async () => {
       screen.getByRole('button', { name: /start practice/i }).click();
@@ -303,6 +348,9 @@ describe('timer', () => {
     act(() => { vi.advanceTimersByTime(60_000); });
     await act(async () => {
       screen.getByRole('button', { name: /end session/i }).click();
+    });
+    await act(async () => {
+      screen.getByRole('button', { name: /save session/i }).click();
     });
     expect(screen.getByText(/saved/i)).toBeInTheDocument();
   });

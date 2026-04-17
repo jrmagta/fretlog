@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { sessionsApi } from '../api/sessions';
-import type { Session, Stats } from '../api/types';
+import { songsApi } from '../api/songs';
+import { techniquesApi } from '../api/techniques';
+import type { Session, Stats, Song, Technique } from '../api/types';
 import { parseDateStrip, formatMinutes, formatElapsed } from '../utils/dates';
+import LibraryPicker from '../components/LibraryPicker';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -15,6 +18,18 @@ export default function Dashboard() {
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // End-session overlay
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayDuration, setOverlayDuration] = useState(0);
+  const [overlayDate, setOverlayDate] = useState('');
+  const [overlaySongs, setOverlaySongs] = useState<Song[]>([]);
+  const [overlayTechniques, setOverlayTechniques] = useState<Technique[]>([]);
+  const [selectedSongIds, setSelectedSongIds] = useState<number[]>([]);
+  const [selectedTechIds, setSelectedTechIds] = useState<number[]>([]);
+  const [overlayNotes, setOverlayNotes] = useState('');
+  const [overlayRefUrl, setOverlayRefUrl] = useState('');
+  const [overlaySaving, setOverlaySaving] = useState(false);
 
   // Quick log
   const today = new Date().toISOString().split('T')[0];
@@ -70,12 +85,74 @@ export default function Dashboard() {
     const duration = Math.max(1, Math.round(elapsed / 60));
     const date = startTimeRef.current!.toISOString().split('T')[0];
 
-    await sessionsApi.create({ date, duration_minutes: duration });
+    // Open overlay instead of saving immediately
+    setOverlayDuration(duration);
+    setOverlayDate(date);
+    setOverlayNotes('');
+    setOverlayRefUrl('');
+    setSelectedSongIds([]);
+    setSelectedTechIds([]);
+
+    const [songs, techniques] = await Promise.all([songsApi.list(), techniquesApi.list()]);
+    setOverlaySongs(songs);
+    setOverlayTechniques(techniques);
+    setOverlayOpen(true);
+  }
+
+  function resetTimer() {
     setElapsed(0);
     startTimeRef.current = null;
+  }
 
-    flashSaved('timer');
-    await loadData();
+  async function handleOverlaySave() {
+    setOverlaySaving(true);
+    try {
+      const session = await sessionsApi.create({
+        date: overlayDate,
+        duration_minutes: overlayDuration,
+        notes: overlayNotes || undefined,
+        reference_url: overlayRefUrl || undefined,
+      });
+      await Promise.all([
+        ...selectedSongIds.map(id => sessionsApi.attachSong(session.id, id)),
+        ...selectedTechIds.map(id => sessionsApi.attachTechnique(session.id, id)),
+      ]);
+      setOverlayOpen(false);
+      resetTimer();
+      flashSaved('timer');
+      await loadData();
+    } finally {
+      setOverlaySaving(false);
+    }
+  }
+
+  function handleOverlayDiscard() {
+    setOverlayOpen(false);
+    resetTimer();
+  }
+
+  function toggleSong(id: number) {
+    setSelectedSongIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }
+
+  function toggleTech(id: number) {
+    setSelectedTechIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }
+
+  async function createSong(title: string) {
+    const song = await songsApi.create({ title });
+    setOverlaySongs(prev => [...prev, song].sort((a, b) => a.title.localeCompare(b.title)));
+    setSelectedSongIds(prev => [...prev, song.id]);
+  }
+
+  async function createTechnique(name: string) {
+    const tech = await techniquesApi.create({ name });
+    setOverlayTechniques(prev => [...prev, tech].sort((a, b) => a.name.localeCompare(b.name)));
+    setSelectedTechIds(prev => [...prev, tech.id]);
   }
 
   // ── Quick log ──────────────────────────────────────────────────────────
@@ -105,6 +182,85 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+
+      {/* ── End-session overlay ── */}
+      {overlayOpen && (
+        <div className="overlay-backdrop" role="dialog" aria-modal="true" aria-label="End session">
+          <div className="overlay-panel">
+            <h2 className="overlay-title">End Session</h2>
+
+            <div className="overlay-meta">
+              <div className="overlay-meta-item">
+                <span className="overlay-meta-label">Duration</span>
+                <span className="overlay-meta-value">{formatMinutes(overlayDuration)}</span>
+              </div>
+              <div className="overlay-meta-item">
+                <span className="overlay-meta-label">Date</span>
+                <span className="overlay-meta-value">{overlayDate}</span>
+              </div>
+            </div>
+
+            <LibraryPicker
+              heading="Songs"
+              items={overlaySongs.map(s => ({ id: s.id, label: s.title }))}
+              selectedIds={selectedSongIds}
+              onToggle={toggleSong}
+              onCreate={createSong}
+              createPlaceholder="Add a song…"
+            />
+
+            <LibraryPicker
+              heading="Techniques"
+              items={overlayTechniques.map(t => ({ id: t.id, label: t.name }))}
+              selectedIds={selectedTechIds}
+              onToggle={toggleTech}
+              onCreate={createTechnique}
+              createPlaceholder="Add a technique…"
+            />
+
+            <div className="field overlay-field">
+              <label className="field-label" htmlFor="ov-notes">Notes</label>
+              <input
+                id="ov-notes"
+                type="text"
+                className="field-input"
+                placeholder="What did you work on?"
+                value={overlayNotes}
+                onChange={e => setOverlayNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="field overlay-field">
+              <label className="field-label" htmlFor="ov-url">Reference URL</label>
+              <input
+                id="ov-url"
+                type="url"
+                className="field-input"
+                placeholder="https://…"
+                value={overlayRefUrl}
+                onChange={e => setOverlayRefUrl(e.target.value)}
+              />
+            </div>
+
+            <div className="overlay-actions">
+              <button
+                className="overlay-save-btn"
+                onClick={handleOverlaySave}
+                disabled={overlaySaving}
+              >
+                {overlaySaving ? 'Saving…' : 'Save Session'}
+              </button>
+              <button
+                className="overlay-discard-btn"
+                onClick={handleOverlayDiscard}
+                disabled={overlaySaving}
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <header className="dash-header">

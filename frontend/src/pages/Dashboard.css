@@ -541,6 +541,143 @@
   color: var(--primary);
 }
 
+/* ─── End-session overlay ─────────────────────────────────────────────── */
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.overlay-panel {
+  background: var(--surface-container-low);
+  border-radius: 1.5rem;
+  padding: 2.25rem 2rem 2rem;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  animation: slide-up 0.25s ease;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.overlay-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.overlay-meta {
+  display: flex;
+  gap: 2rem;
+}
+
+.overlay-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.overlay-meta-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--label-sm);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.overlay-meta-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--title-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-surface);
+}
+
+.overlay-field {
+  /* uses existing .field styles, just needs gap context */
+}
+
+.overlay-actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+.overlay-save-btn {
+  flex: 1;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 0.875rem;
+  background: linear-gradient(135deg, var(--primary-container), var(--primary));
+  color: var(--on-surface);
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.overlay-save-btn:hover:not(:disabled) {
+  filter: brightness(1.18);
+}
+
+.overlay-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.overlay-discard-btn {
+  padding: 0.9rem 1.25rem;
+  border: none;
+  border-radius: 0.875rem;
+  background: transparent;
+  color: var(--on-surface-variant);
+  font-family: 'Manrope', sans-serif;
+  font-size: var(--body-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.overlay-discard-btn:hover:not(:disabled) {
+  color: var(--on-surface);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.overlay-discard-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ─── Animations ──────────────────────────────────────────────────────── */
 
 @keyframes fade-up {
