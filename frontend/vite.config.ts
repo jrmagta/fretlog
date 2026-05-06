@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+const apiTarget = process.env.VITE_API_TARGET ?? 'http://backend:3000';
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -18,7 +20,7 @@ export default defineConfig({
     allowedHosts: ['jr-pc1.jrmagta.home', 'jr-pc2.jrmagta.home'],
     proxy: {
       '/api': {
-        target: 'http://backend:3000',
+        target: apiTarget,
         changeOrigin: true,
       },
     },
