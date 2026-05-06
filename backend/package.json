@@ -5,9 +5,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "DATABASE_URL=postgresql://fretlog:fretlog@localhost:5433/fretlog_test vitest run",
+    "test": "NODE_ENV=test DATABASE_URL=postgresql://fretlog:fretlog@localhost:5433/fretlog_test vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "DATABASE_URL=postgresql://fretlog:fretlog@localhost:5433/fretlog_test vitest"
+    "test:watch": "NODE_ENV=test DATABASE_URL=postgresql://fretlog:fretlog@localhost:5433/fretlog_test vitest"
   },
   "dependencies": {
     "cors": "^2.8.5",

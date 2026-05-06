@@ -4,6 +4,7 @@ import { pool } from './db';
 import sessionsRouter from './routes/sessions';
 import songsRouter from './routes/songs';
 import techniquesRouter from './routes/techniques';
+import testRouter from './routes/test';
 
 const app = express();
 
@@ -13,6 +14,10 @@ app.use(express.json());
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/songs', songsRouter);
 app.use('/api/techniques', techniquesRouter);
+
+if (process.env.NODE_ENV === 'test') {
+  app.use('/api/test', testRouter);
+}
 
 app.get('/api/health', async (_req, res) => {
   try {
