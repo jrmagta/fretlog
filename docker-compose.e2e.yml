@@ -1,0 +1,46 @@
+name: fretlog_e2e
+
+services:
+  db_e2e:
+    image: docker.io/library/postgres:16
+    environment:
+      POSTGRES_DB: fretlog_e2e
+      POSTGRES_USER: fretlog
+      POSTGRES_PASSWORD: fretlog
+    ports:
+      - "5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fretlog -d fretlog_e2e"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  backend_e2e:
+    build: ./backend
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://fretlog:fretlog@db_e2e:5432/fretlog_e2e
+    ports:
+      - "3001:3000"
+    depends_on:
+      db_e2e:
+        condition: service_healthy
+    security_opt:
+      - label=disable
+    volumes:
+      - ./backend/src:/app/src
+
+  frontend_e2e:
+    build: ./frontend
+    environment:
+      VITE_API_TARGET: http://backend_e2e:3000
+    ports:
+      - "5174:5173"
+    depends_on:
+      - backend_e2e
+    security_opt:
+      - label=disable
+    volumes:
+      - ./frontend/src:/app/src
